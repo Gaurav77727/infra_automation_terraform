@@ -31,9 +31,9 @@ module "Virtual_Network" {
 
 
 module "VM" {
-  depends_on = [module.Resource_group, module.Virtual_Network]
+  depends_on = [module.Resource_group, module.Virtual_Network, module.Key_Vault, module.Public_Ip]
   source     = "../../modules/azurerm_virtual_machine"
-  vms        = var.vm_parents
+  vms        = var.vms
 }
 
 module "AKS_Cluster" {

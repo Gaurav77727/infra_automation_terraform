@@ -1,21 +1,20 @@
-# data "azurerm_key_vault" "keyvaultfetch" {
-#   for_each = var.vms
-#   name                = each.value.keyvaultname
-#   resource_group_name = each.value.keyvaultrg_name
-# }
+data "azurerm_key_vault" "keyvault" {
+  for_each = var.vms
+  name                = each.value.keyvault_name
+  resource_group_name = each.value.keyvault_rg
+}
 
-# # Fetch secrets from Key Vault
-# data "azurerm_key_vault_secret" "vm_username" {
-#   for_each    = var.vms
-#   name        = each.value.vm_username_secret_name
-#   key_vault_id = data.azurerm_key_vault.keyvaultfetch[each.key].id
-# }
+data "azurerm_key_vault_secret" "vm_username" {
+  for_each    = var.vms
+  name        = "vm-admin-username"
+  key_vault_id = data.azurerm_key_vault.keyvault[each.key].id
+}
 
-# data "azurerm_key_vault_secret" "vm_password" {
-#   for_each    = var.vms
-#   name        = each.value.vm_password_secret_name
-#   key_vault_id = data.azurerm_key_vault.keyvaultfetch[each.key].id
-# }
+data "azurerm_key_vault_secret" "vm_password" {
+  for_each    = var.vms
+  name        = "vm-admin-password"
+  key_vault_id = data.azurerm_key_vault.keyvault[each.key].id
+}
 
 data "azurerm_subnet" "subnetfetch" {
   for_each = var.vms
@@ -23,12 +22,6 @@ data "azurerm_subnet" "subnetfetch" {
   virtual_network_name = each.value.vnet_name
   resource_group_name  = each.value.rg_name
 }
-
-# data "azurerm_public_ip" "pipfetch" {
-#   for_each = var.vms
-#   name                = each.value.pip_name
-#   resource_group_name = each.value.rg_name
-# }
 
 resource "azurerm_network_interface" "nic" {
   for_each = var.vms
@@ -39,10 +32,8 @@ resource "azurerm_network_interface" "nic" {
   ip_configuration {
     name                          = "internal"
     subnet_id                     = data.azurerm_subnet.subnetfetch[each.key].id
-    # public_ip_address_id          = data.azurerm_public_ip.pipfetch[each.key].id
     private_ip_address_allocation = "Dynamic"
   }
-
 }
 
 resource "azurerm_virtual_machine" "vm" {
@@ -69,11 +60,12 @@ resource "azurerm_virtual_machine" "vm" {
 
   os_profile {
     computer_name  = each.value.os_profile.computer_name
-    admin_username = each.value.os_profile.admin_username
-    admin_password = each.value.os_profile.admin_password
+    admin_username = data.azurerm_key_vault_secret.vm_username[each.key].value
+    admin_password = data.azurerm_key_vault_secret.vm_password[each.key].value
   }
-  #Required for Linux VM
+
   os_profile_linux_config {
     disable_password_authentication = false
  }
 }
+

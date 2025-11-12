@@ -107,50 +107,35 @@ variable "vnet_parents" {
 # Virtual Machine Variables
 
 
-variable "vm_parents" {
+variable "vms" {
   type = map(object({
-    nic_name    = string
-    location    = string
-    subnet_name = string
-    vnet_name   = string
-    rg_name     = string
-    pip_name    = optional(string)
-
-    # keyvaultname            = string
-    # keyvaultrg_name         = string
-    # vm_username_secret_name = string
-    # vm_password_secret_name = string
-
-    vm_name = string
-    vm_size = string
-
+    rg_name       = string
+    location      = string
+    vnet_name     = string
+    subnet_name   = string
+    nic_name      = string
+    vm_name       = string
+    vm_size       = string
+    keyvault_name = string
+    keyvault_rg   = string
     storage_image_reference = object({
       publisher = string
       offer     = string
       sku       = string
       version   = string
     })
-
     storage_os_disk = object({
       name              = string
       caching           = string
       create_option     = string
       managed_disk_type = string
     })
-
     os_profile = object({
-      computer_name  = string
-      admin_username = string
-      admin_password = string
+      computer_name = string
     })
-
-    os_profile_linux_config = object({
-      disable_password_authentication = bool
-    })
-
-    tags = optional(map(string))
   }))
 }
+
 
 variable "aks_clusters" {
   type = map(object({

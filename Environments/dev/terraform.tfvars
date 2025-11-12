@@ -112,72 +112,31 @@ vnet_parents = {
   }
 }
 
-vm_parents = {
+vms = {
   vm1 = {
-    # keyvaultname            = "Dhankeyvault77"
-    # keyvaultrg_name         = "simplerg701"
-    # vm_username_secret_name = "adminusername"
-    # vm_password_secret_name = "adminpassword"
-    subnet_name = "frontendsubnet1"
-    vnet_name   = "dev-vnet"
-    rg_name     = "simplerg701"
-    location    = "Central India"
-    # pip_name     = "pip1"
-    nic_name = "nic1"
-    vm_name  = "vm1"
-    vm_size  = "Standard_D2s_v3"
+    rg_name       = "simplerg701"
+    location      = "Central India"
+    vnet_name     = "dev-vnet"
+    subnet_name   = "frontendsubnet1"
+    nic_name      = "nic1"
+    vm_name       = "frontenedvm"
+    vm_size       = "Standard_B1s"
+    keyvault_name = "Dhankeyvault77"
+    keyvault_rg   = "simplerg701"
     storage_image_reference = {
       publisher = "Canonical"
       offer     = "UbuntuServer"
       sku       = "18.04-LTS"
       version   = "latest"
     }
-
     storage_os_disk = {
-      name              = "storagedisk1"
+      name              = "demo-osdisk"
       caching           = "ReadWrite"
       create_option     = "FromImage"
       managed_disk_type = "Standard_LRS"
     }
-
     os_profile = {
-      computer_name  = "hostname"
-      admin_username = "adminuser"
-      admin_password = "Password@123"
-    }
-    os_profile_linux_config = {
-      disable_password_authentication = false
-    }
-  }
-  vm2 = {
-    subnet_name = "backendsubnet2"
-    vnet_name   = "dev-vnet"
-    rg_name     = "simplerg701"
-    location    = "Central India"
-    nic_name    = "nic2"
-    vm_name     = "vm2"
-    vm_size     = "Standard_D2s_v3"
-    storage_image_reference = {
-      publisher = "Canonical"
-      offer     = "UbuntuServer"
-      sku       = "18.04-LTS"
-      version   = "latest"
-    }
-
-    storage_os_disk = {
-      name              = "storagedisk1"
-      caching           = "ReadWrite"
-      create_option     = "FromImage"
-      managed_disk_type = "Standard_LRS"
-    }
-
-    os_profile = {
-      computer_name  = "hostname"
-      admin_username = "adminuser"
-      admin_password = "Password@123"
-    }
-    os_profile_linux_config = {
-      disable_password_authentication = false
+      computer_name = "demo-vm"
     }
   }
 }
@@ -212,22 +171,20 @@ acrs = {
     location            = "Central India"
     sku                 = "Premium"
     admin_enabled       = false
-
     georeplications = {
-      southindia = {
-        location                = "South India"
+      eastus = {
+        location                = "East US" # fixed region
         zone_redundancy_enabled = true
         tags                    = {}
       }
-      westindia = {
-        location                = "West India"
+      northeurope = {
+        location                = "North Europe"
         zone_redundancy_enabled = true
         tags                    = {}
       }
     }
   }
 }
-
 
 sql_servers = {
   sql_servers1 = {
