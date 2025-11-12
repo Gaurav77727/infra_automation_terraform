@@ -1,0 +1,87 @@
+trigger:
+ branches:
+   include:
+     - feature/*
+     - main
+
+pool: Bastion
+parameters:
+  - name: Environment
+    displayName: 'Select Emvironment'
+    default: 'dev'
+    values:
+      - dev
+      - prod
+
+stages:
+  - stage: Init_Stage
+    jobs:
+      - job: Init_Stage
+        displayName: Init-Stage
+        steps:
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'init'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/Environments/dev'
+            backendServiceArm: 'SuperInfraSv'
+            backendAzureRmResourceGroupName: 'riya-rg'
+            backendAzureRmStorageAccountName: 'stgriyasimple'
+            backendAzureRmContainerName: 'terraform-statefile'
+            backendAzureRmKey: 'devstatefile'
+        - task: TerraformTask@5
+          inputs:
+            provider: 'azurerm'
+            command: 'plan'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/Environments/dev'
+            environmentServiceNameAzureRM: 'SuperInfraSv'
+        
+        - publish: '$(System.DefaultWorkingDirectory)/Environments/dev/.terraform'
+          artifact: terraform_modules
+
+  - stage: Manual_Validation
+    displayName: "Manual Approval Before Apply"
+    dependsOn: Init_Stage
+    jobs:
+      - job: WaitForApproval
+        displayName: "Waiting for Manual Validation"
+        pool: server
+        timeoutInMinutes: 60  # Wait up to 1 hour
+        steps:
+          - task: ManualValidation@0
+            inputs:
+              notifyUsers: |
+                user@yourcompany.com
+              instructions: "Please review the Terraform plan output and approve to continue with Apply."
+              onTimeout: 'reject'
+
+  - stage: Terraform_Apply
+    displayName: "Terraform Apply - ${{ parameters.Environment }}"
+    dependsOn: Manual_Validation
+    condition: succeeded()  # only runs if validation is approved
+    jobs:
+      - job: Apply_Job
+        displayName: "Terraform Apply"
+        steps:
+           
+        - task: TerraformTask@5
+          displayName: "Terraform Init before Apply"
+          inputs:
+            provider: 'azurerm'
+            command: 'init'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/Environments/${{ parameters.Environment }}'
+            backendServiceArm: 'SuperInfraSv'
+            backendAzureRmResourceGroupName: 'riya-rg'
+            backendAzureRmStorageAccountName: 'stgriyasimple'
+            backendAzureRmContainerName: 'terraform-statefile'
+            backendAzureRmKey: '${{ parameters.Environment }}statefile'
+
+        - task: TerraformTask@5
+          displayName: "Terraform Apply"
+          inputs:
+            provider: 'azurerm'
+            command: 'apply'
+            workingDirectory: '$(System.DefaultWorkingDirectory)/Environments/${{ parameters.Environment }}'
+            environmentServiceNameAzureRM: 'SuperInfraSv'
+
+        
